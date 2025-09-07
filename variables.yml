@@ -1,0 +1,55 @@
+variables:
+  ServiceConnectionNameDev: "[devops service connection]"
+  ServiceConnectionNameTst: ""
+  ServiceConnectionNameAcc: ""
+  ServiceConnectionNamePrd: ""
+  TenantId: [tenantid]                                                     #The id of your azure tenant
+  SubscriptionIdDev: [subscrptionid]                                       #The Id of your Azure Subscription, if not using a specific environment, just leave it empty
+  SubscriptionIdTst : ''
+  SubscriptionIdACC : ''
+  SubscriptionIdPrd : ''
+  rsgConnectivityWEU: rg-pp-poc-*env*-weu-01                               #can be any value but must include *env* to be replaced
+  rsgConnectivityNEU: rg-pp-poc-*env*-neu-01                               #can be any value but must include *env* to be replaced
+  rsgSHWEU          : rg-pp-poc-kv-*env*-weu-01                            #can be any value but must include *env* to be replaced
+  vNetNameVariableWEU: vnet-*env*-weu-01                                   #can be any value but must include *env* to be replaced
+  vNetNameVariableNEU: vnet-*env*-neu-01                                   #can be any value but must include *env* to be replaced
+  powerPlatformEnvironmentIddev: '[powerplatformenvironmentid]'            #The Id of your Power Platform Environment, if not using a specific environment, just leave it empty
+  powerPlatformEnvironmentIdtst: ''
+  powerPlatformEnvironmentIdacc: ''
+  powerPlatformEnvironmentIdprd: ''
+  locationWeu: westeurope
+  locationNeu: northeurope
+  PeeringWEU: peering-weu-neu-*env*-01                                     #can be any value but must include *env* to be replaced
+  PeeringNEU: peering-neu-weu-*env*-01                                     #can be any value but must include *env* to be replaced
+  SNetPPWEU: snet-pp-*env*-weu-01                                          #can be any value but must include *env* to be replaced
+  SNetPPNEU: snet-pp-*env*-neu-01                                          #can be any value but must include *env* to be replaced
+  SNetPEWEU: snet-pe-*env*-weu-01                                          #can be any value but must include *env* to be replaced
+  SNetSHWEU: snet-sh-*env*-weu-01                                          #can be any value but must include *env* to be replaced
+  subNetSearchStringPP: "*/subnets/snet-pp-*"                              #need to match the subnet name
+  subNetSearchStringPE: "*/subnets/snet-pe-*"                              #need to match the subnet name
+  keyvaultName: kv-pp-poc-*env*-weu-01                                   #must be globally unique, can be any value but must include *env* to be replaced
+  NsgPeWEU: nsg-pe-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  NsgPpWEU: nsg-pp-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  NsgPpNEU: nsg-pp-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  NsgShWEU: nsg-sh-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  addressPrefixDev: "10.0.0."                                              #must be a /24 ( 255 addresses ) for this Poc. The script will fill the 4th digit. if not using a specific environment, just leave it empty         
+  addressPrefixTst: "10.0.1."
+  addressPrefixAcc: "10.0.2."
+  addressPrefixPrd: "10.0.3."
+  objectIdEntPolReaderDev: "[objectid]"                                    #Object ID of SPN used to run AzDevOps pipeline, if not using a specific environment, just leave it empty
+  objectIdEntPolReaderTst: ""
+  objectIdEntPolReaderAcc: ""
+  objectIdEntPolReaderPrd: ""
+  roleAssignmentsKV: '[{principalId:''[objectid of user reading keyvault]'',roleDefinitionIdOrName:''4633458b-17de-408a-b874-0445c86b69e6'',principalType:''User''}]'  # This is just to show how the role assignments will look like when passed to the bicep file
+  defaultSecrets: '[{name:''mysecret'',value:''Can you read me from PP?''}]'  # This is just to show how the secrets will look like when passed to the bicep file
+
+    # Options for Principle Type:
+    # User
+    # Group
+    # ServicePrincipal
+
+    # Options for roleDefinitionIdOrName:
+    # '00482a5a-887f-4fb3-b363-3b7fe8e74483' // Key Vault Administrator
+    # 'f25e0fa2-a7c8-4377-a976-54943a77a395' // Key Vault Contributor
+    # 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7' // Key Vault Secrets Officer
+    # '4633458b-17de-408a-b874-0445c86b69e6' // Key Vault Secrets User

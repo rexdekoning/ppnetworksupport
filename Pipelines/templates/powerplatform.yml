@@ -1,0 +1,204 @@
+parameters:
+  - name: ServiceConnectionName
+    type: string
+  - name: environment
+    type: string
+
+steps:
+  - task: AzureCLI@2
+    displayName: Resource Provider
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        az config set bicep.use_binary_from_path=false  #Work around for bug in AZ CLi 2.7.1. https://stackoverflow.com/questions/79569313/no-such-file-or-directory-home-vsts-work-temp-azclitask-bin-bicep-when-doi
+        $RPStatus = az provider list --query "[?namespace=='Microsoft.PowerPlatform'].{Provider:namespace, RegistrationState:registrationState}" | ConvertFrom-Json | Select-Object -ExpandProperty RegistrationState
+        if ($RPStatus -ne "Registered") {
+            Write-Host "Registering resource provider Microsoft.PowerPlatform..."
+            az provider register --namespace Microsoft.PowerPlatform --wait
+        } else {
+            Write-Host "Resource provider Microsoft.PowerPlatform is already registered."
+        }
+  - task: AzureCLI@2
+    displayName: "Resource Groups"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        echo "locationWEU: $(locationWEU)"
+        echo "rsgConnectivityWEU: $(rsgConnectivityWEU)"
+
+        az deployment sub create --name devconnrgweu --location $(locationWEU) --parameters ./parameters/common/rsgConnectivityWEU.bicepparam name="$(rsgConnectivityWEU)" 
+        az deployment sub create --name devconnrgneu --parameters ./parameters/common/rsgConnectivityNEU.bicepparam --location $(locationNEU) --parameters name="$(rsgConnectivityNEU)" 
+        az deployment sub create --name devshrgweu   --parameters ./parameters/common/rsgSharedWEU.bicepparam --location $(locationWEU) --parameters name="$(rsgSHWEU)" 
+
+  - task: AzureCLI@2
+    displayName: "Network Security Groups"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        $nsg1   = az deployment group create    --name nsgvNetPPWEU --parameters ./parameters/common/nsg-pp-weu.bicepparam --parameters name=$(NsgPpWEU) `
+                                                --resource-group $(rsgConnectivityWEU) | ConvertFrom-Json | `
+                                                Select-Object -ExpandProperty properties | `
+                                                Select-Object -ExpandProperty outputResources | `
+                                                Select-Object -ExpandProperty id
+
+        $nsg2   = az deployment group create    --name nsgvNetPPNEU --parameters ./parameters/common/nsg-pp-neu.bicepparam --parameters name=$(NsgPpNEU) `
+                                                --resource-group $(rsgConnectivityNEU) | ConvertFrom-Json | `
+                                                Select-Object -ExpandProperty properties | `
+                                                Select-Object -ExpandProperty outputResources | `
+                                                Select-Object -ExpandProperty id
+
+        $nsg3   = az deployment group create    --name nsgvNetSHWEU --parameters ./parameters/common/nsg-sh-weu.bicepparam --parameters name=$(NsgShWEU) `
+                                                --resource-group $(rsgConnectivityWEU) | ConvertFrom-Json | `
+                                                Select-Object -ExpandProperty properties | `
+                                                Select-Object -ExpandProperty outputResources | `
+                                                Select-Object -ExpandProperty id
+
+        $nsg4   = az deployment group create    --name nsgvNetPEWEU --parameters ./parameters/common/nsg-pe-weu.bicepparam --parameters name=$(NsgPeWEU) `
+                                                --resource-group $(rsgConnectivityWEU) | ConvertFrom-Json | `
+                                                Select-Object -ExpandProperty properties | `
+                                                Select-Object -ExpandProperty outputResources | `
+                                                Select-Object -ExpandProperty id
+
+        Write-Output "##vso[task.setvariable variable=NSGID1]$nsg1"
+        Write-Output "##vso[task.setvariable variable=NSGID2]$nsg2"
+        Write-Output "##vso[task.setvariable variable=NSGID3]$nsg3"
+        Write-Output "##vso[task.setvariable variable=NSGID4]$nsg4"
+
+  - task: AzureCLI@2
+    displayName: "Virtual Networks"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        $vnetWeu = az deployment group create --name vNetWEU `
+                    --parameters ./parameters/common/vNetWEU.bicepparam `
+                    --parameters name=$(vNetNameVariableWEU) `
+                    --resource-group $(rsgConnectivityWEU) `
+                    | ConvertFrom-Json | Select-Object -ExpandProperty properties | `
+                    Select-Object -ExpandProperty outputResources | `
+                    Select-Object -ExpandProperty id 
+
+        $vnetNeu = az deployment group create --name vNetNEU `
+                    --parameters ./parameters/common/vNetNEU.bicepparam `
+                    --parameters name=$(vNetNameVariableNEU) `
+                    --resource-group $(rsgConnectivityNEU) `
+                    | ConvertFrom-Json | Select-Object -ExpandProperty properties | `
+                    Select-Object -ExpandProperty outputResources | `
+                    Select-Object -ExpandProperty id 
+
+        $vnetWeuId     = $vnetWeu | Select-Object -First 1
+        $vnetNeuId     = $vnetNeu | Select-Object -First 1
+        $peSubnetId    = $vnetWeu | Where-Object {$_ -like "$(subNetSearchStringPE)"}
+        $ppWeuSubnetId = $vnetWeu | Where-Object {$_ -like "$(subNetSearchStringPP)"}
+        $ppNeuSubnetId = $vnetNeu | Where-Object {$_ -like "$(subNetSearchStringPP)"}
+
+        Write-Host "##vso[task.setvariable variable=VNETWEUID]$vnetWeuId"
+        Write-Host "##vso[task.setvariable variable=VNETNEUID]$vnetNeuId"
+        Write-Host "##vso[task.setvariable variable=PPNETWEUID]$ppWeuSubnetId"
+        Write-Host "##vso[task.setvariable variable=PPSNETNEUID]$ppNeuSubnetId"
+        Write-Host "##vso[task.setvariable variable=PESNETWEUID]$peSubnetId"
+
+  - task: AzureCLI@2
+    displayName: "Enterprise Policy"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        $entPolicy = az resource show -g $(rsgConnectivityWEU) --resource-type "Microsoft.PowerPlatform/enterprisePolicies" --name "ep-europe-${{ parameters.environment }}-3" --query "id" -o tsv 2>nul
+        if (!$entPolicy) {
+          Write-Output "Enterprise Policy not found, creating a new one..."
+          $entPolicy = az deployment group create --name entpolEU --debug --parameters ./parameters/common/entpolEU.bicepparam -g $(rsgConnectivityWEU) --parameters environment="${{ parameters.environment }}-3" `
+            | ConvertFrom-Json | Select-Object -ExpandProperty properties | `
+            Select-Object -ExpandProperty outputResources | `
+            Select-Object -ExpandProperty id -First 1
+        } else {
+          Write-Output "Enterprise Policy already exists."
+        }
+        Write-Host "##vso[task.setvariable variable=ENTPOLICYID]$entPolicy"
+
+        #Grant Reader role to the enterprise policy to the identity / group that will finalize the configuration - link the enterprise policy to the Power Platform environments
+
+        #SPN or User or Group that will finalize the configuration - link the enterprise policy to the Power Platform environments
+        az role assignment create --assignee $(objectIdEntPolReader) --role Reader --scope $entPolicy
+
+  - task: AzureCLI@2
+    displayName: "VNet Peering WEU-NEU"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        az network vnet peering create -g $(rsgConnectivityWEU) -n $(PeeringWEU) --vnet-name $(vNetNameVariableWEU) --remote-vnet $(vnetNeuId) --allow-vnet-access
+        az network vnet peering create -g $(rsgConnectivityNEU) -n $(PeeringNEU) --vnet-name $(vNetNameVariableNEU) --remote-vnet $(vnetWeuId) --allow-vnet-access
+
+  - task: AzureCLI@2
+    displayName: "Keyvault"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        $roleAssignmentsKV = "$(roleAssignmentsKV)"  | ConvertFrom-Json | ConvertTo-Json -AsArray
+        $defaultSecrets = "$(defaultSecrets)"  | ConvertFrom-Json | ConvertTo-Json -AsArray
+
+        $KeyVaultWEUId = az deployment group create --name KV --parameters ./parameters/common/kvWEU.bicepparam `
+                                                --parameters name=$(KeyvaultName) `
+                                                --resource-group $(rsgSHWEU) `
+                                                --parameters roleAssignments=$roleAssignmentsKV `
+                                                --parameters secrets=$defaultSecrets | `
+                                                ConvertFrom-Json | Select-Object -ExpandProperty properties | `
+                                                Select-Object -ExpandProperty outputResources | `
+                                                Select-Object -ExpandProperty id -First 1
+        Write-Host "##vso[task.setvariable variable=KVWEUID]$KeyVaultWEUId"
+
+  - task: AzureCLI@2
+    displayName: "Private DNS Zones"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        $keyVaultZone = az deployment group create   --name privdnskv --parameters ./parameters/common/privDnsZoneKeyvaultWEU.bicepparam `
+                                                    --resource-group $(rsgConnectivityWEU) | `
+                                                    ConvertFrom-Json | Select-Object -ExpandProperty properties | `
+                                                    Select-Object -ExpandProperty outputResources | `
+                                                    Select-Object -ExpandProperty id -First 1
+        Write-Host "##vso[task.setvariable variable=KVZONEID]$keyVaultZone"
+
+  - task: AzureCLI@2
+    displayName: "Private End Points"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group create --name pekeyvault --parameters ./parameters/common/peKeyvaultWEU.bicepparam --resource-group $(rsgSHWEU) --parameters subnetResourceId=$(PESNETWEUID) --parameters name=--parameters name=pe-$(KeyvaultName)
+
+  - task: AzureCLI@2
+    displayName: "Power Platorm"
+    inputs:
+      azureSubscription: ${{ parameters.ServiceConnectionName }}
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        $powerPlatformAdminApiToken = az account get-access-token --resource https://api.bap.microsoft.com/ --query accessToken --output tsv 
+
+        $body = [pscustomobject]@{
+          "SystemId" = az resource show --ids $(ENTPOLICYID) --query "properties.systemId" -o tsv
+        }
+
+        $linkEnterprisePolicyUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments/$(powerPlatformEnvironmentId)/enterprisePolicies/NetworkInjection/link?&api-version=2019-10-01"
+        $linkEnterprisePolicyResult = Invoke-WebRequest -Uri $linkEnterprisePolicyUri -Authentication OAuth -Token $(ConvertTo-SecureString $powerPlatformAdminApiToken -AsPlainText -Force) -Method Post -ContentType "application/json" -Body ($body | ConvertTo-Json) -UseBasicParsing
+        if ($linkEnterprisePolicyResult.StatusCode -eq 200) {
+          Write-Host "Enterprise policy linked to Power Platform environment successfully."
+        } else {
+          Write-Host "Failed to link enterprise policy to Power Platform environment. Status code: $($linkEnterprisePolicyResult.StatusCode)"
+        }
