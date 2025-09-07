@@ -1,5 +1,5 @@
 variables:
-  ServiceConnectionNameDev: "Azure DEV"
+  ServiceConnectionNameDev: "[devops service connection]"
   ServiceConnectionNameTst: ""
   ServiceConnectionNameAcc: ""
   ServiceConnectionNamePrd: ""
@@ -27,9 +27,10 @@ variables:
   SNetSHWEU: snet-sh-*env*-weu-01                                          #can be any value but must include *env* to be replaced
   subNetSearchStringPP: "*/subnets/snet-pp-*"                              #need to match the subnet name
   subNetSearchStringPE: "*/subnets/snet-pe-*"                              #need to match the subnet name
-  keyvaultName: kv-pp-ymere-*env*-weu-02                                   #can be any value but must include *env* to be replaced
+  keyvaultName: kv-pp-poc-*env*-weu-01                                   #must be globally unique, can be any value but must include *env* to be replaced
   NsgPeWEU: nsg-pe-*env*-weu-01                                            #can be any value but must include *env* to be replaced
   NsgPpWEU: nsg-pp-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  NsgPpNEU: nsg-pp-*env*-weu-01                                            #can be any value but must include *env* to be replaced
   NsgShWEU: nsg-sh-*env*-weu-01                                            #can be any value but must include *env* to be replaced
   addressPrefixDev: "10.0.0."                                              #must be a /24 ( 255 addresses ) for this Poc. The script will fill the 4th digit. if not using a specific environment, just leave it empty         
   addressPrefixTst: "10.0.1."
@@ -39,13 +40,8 @@ variables:
   objectIdEntPolReaderTst: ""
   objectIdEntPolReaderAcc: ""
   objectIdEntPolReaderPrd: ""
-  roleAssignmentsKV:
-    - principalId: '[objectid]'                                            # ObjectId of the user, service principal or group
-      roleDefinitionId: 'b86a8fe4-44ce-4948-aee5-eccb2c155cd'              # Key Vault Reader
-      principalType: 'User'
-  defaultSecrets:
-    - name: 'mysecret'
-      value: 'Can you read me from PP?'
+  roleAssignmentsKV: '[{principalId:''[objectid of user reading keyvault]'',roleDefinitionIdOrName:''4633458b-17de-408a-b874-0445c86b69e6'',principalType:''User''}]'  # This is just to show how the role assignments will look like when passed to the bicep file
+  defaultSecrets: '[{name:''mysecret'',value:''Can you read me from PP?''}]'  # This is just to show how the secrets will look like when passed to the bicep file
 
     # Options for Principle Type:
     # User

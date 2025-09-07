@@ -12,5 +12,5 @@ param networkAcls             = {
                                     bypass: 'AzureServices'
                                     defaultAction: 'Deny'
                                 }
-param roleAssignments         = readEnvironmentVariable('roleAssignmentsKV') 
-param secrets                 = readEnvironmentVariable('defaultSecrets')
+param roleAssignments         = []
+param secrets                 = []

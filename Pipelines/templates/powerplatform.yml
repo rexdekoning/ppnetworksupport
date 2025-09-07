@@ -146,9 +146,14 @@ steps:
       scriptType: pscore
       scriptLocation: inlineScript
       inlineScript: |
+        $roleAssignmentsKV = "$(roleAssignmentsKV)"  | ConvertFrom-Json | ConvertTo-Json -AsArray
+        $defaultSecrets = "$(defaultSecrets)"  | ConvertFrom-Json | ConvertTo-Json -AsArray
+
         $KeyVaultWEUId = az deployment group create --name KV --parameters ./parameters/common/kvWEU.bicepparam `
                                                 --parameters name=$(KeyvaultName) `
-                                                --resource-group $(rsgSHWEU) | `
+                                                --resource-group $(rsgSHWEU) `
+                                                --parameters roleAssignments=$roleAssignmentsKV `
+                                                --parameters secrets=$defaultSecrets | `
                                                 ConvertFrom-Json | Select-Object -ExpandProperty properties | `
                                                 Select-Object -ExpandProperty outputResources | `
                                                 Select-Object -ExpandProperty id -First 1
