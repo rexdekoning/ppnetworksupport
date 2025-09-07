@@ -1,0 +1,167 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - template: ../variables.yml
+
+parameters:
+      - name: environment
+        type: string
+        default: 'dev'
+        values:
+          - dev
+          - tst
+          - acc
+          - prd
+
+stages:
+  - stage: ppnetworkinjection
+    displayName: "Deploy ${{ parameters.environment }} envrionment"
+    jobs:
+      - job: deploy
+        displayName: "Deploy ${{ parameters.environment }}"
+        steps:
+          - pwsh: |
+                switch ("${{ parameters.environment }}") {
+                    'dev' { 
+                              $subscriptionid = "$(SubscriptionIdDev)"
+                              $rsgConnectivityWEU = "$(rsgConnectivityWEU)" -replace '\*env\*', 'd' 
+                              $rsgConnectivityNEU = "$(rsgConnectivityNEU)" -replace '\*env\*', 'd' 
+                              $rsgSHWEU = "$(rsgSHWEU)" -replace '\*env\*', 'd'
+                              $vNetNameVariableWEU = "$(vNetNameVariableWEU)" -replace '\*env\*', 'd'
+                              $vNetNameVariableNEU = "$(vNetNameVariableNEU)" -replace '\*env\*', 'd'
+                              $PeeringWEU = "$(PeeringWEU)" -replace '\*env\*', 'd'
+                              $PeeringNEU = "$(PeeringNEU)" -replace '\*env\*', 'd'
+                              $powerPlatformEnvironmentId = "$(powerPlatformEnvironmentIddev)"
+                              $SNetPPWEU = "$(SNetPPWEU)" -replace '\*env\*', 'd'
+                              $SNetPPNEU = "$(SNetPPNEU)" -replace '\*env\*', 'd'
+                              $SNetPEWEU = "$(SNetPEWEU)" -replace '\*env\*', 'd'
+                              $SNetSHWEU = "$(SNetSHWEU)" -replace '\*env\*', 'd'
+                              $keyvaultName = "$(keyvaultName)" -replace '\*env\*', 'd'
+                              $NsgPeWEU = "$(NsgPeWEU)" -replace '\*env\*', 'd'
+                              $NsgPpWEU = "$(NsgPpWEU)" -replace '\*env\*', 'd'
+                              $NsgPpNEU = "$(NsgPpNEU)" -replace '\*env\*', 'd'
+                              $NsgShWEU = "$(NsgShWEU)" -replace '\*env\*', 'd'
+                              $addressPrefix = "$(addressPrefixDev)"
+                              $objectIdEntPolReader = "$(objectIdEntPolReaderDev)"
+                              $roleAssignmentsKV = "$(roleAssignmentsKV)"
+                              $defaultSecrets = "$(defaultSecrets)"
+                          }
+                    'tst' { 
+                              $subscriptionid = "$(SubscriptionIdTst)" 
+                              $rsgConnectivityWEU = "$(rsgConnectivityWEU)" -replace '\*env\*', 't' 
+                              $rsgConnectivityNEU = "$(rsgConnectivityNEU)" -replace '\*env\*', 't' 
+                              $rsgSHWEU = "$(rsgSHWEU)" -replace '\*env\*', 't'
+                              $vNetNameVariableWEU = "$(vNetNameVariableWEU)" -replace '\*env\*', 't'
+                              $vNetNameVariableNEU = "$(vNetNameVariableNEU)" -replace '\*env\*', 't'
+                              $PeeringWEU = "$(PeeringWEU)" -replace '\*env\*', 't'
+                              $PeeringNEU = "$(PeeringNEU)" -replace '\*env\*', 't'
+                              $powerPlatformEnvironmentId = "$(powerPlatformEnvironmentIdTst)"
+                              $SNetPPWEU = "$(SNetPPWEU)" -replace '\*env\*', 't'
+                              $SNetPPNEU = "$(SNetPPNEU)" -replace '\*env\*', 't'
+                              $SNetPEWEU = "$(SNetPEWEU)" -replace '\*env\*', 't'
+                              $SNetSHWEU = "$(SNetSHWEU)" -replace '\*env\*', 't'
+                              $keyvaultName = "$(keyvaultName)" -replace '\*env\*', 't'
+                              $NsgPeWEU = "$(NsgPeWEU)" -replace '\*env\*', 't'
+                              $NsgPpWEU = "$(NsgPpWEU)" -replace '\*env\*', 't'
+                              $NsgPpNEU = "$(NsgPpNEU)" -replace '\*env\*', 't'
+                              $NsgShWEU = "$(NsgShWEU)" -replace '\*env\*', 't'
+                              $addressPrefix = "$(addressPrefixTst)"
+                              $objectIdEntPolReader = "$(objectIdEntPolReaderTst)"
+                              $roleAssignmentsKV = "$(roleAssignmentsKV)"
+                              $defaultSecrets = "$(defaultSecrets)"
+                          }
+                    'acc' { 
+                              $subscriptionid = "$(SubscriptionIdAcc)" 
+                              $rsgConnectivityWEU = "$(rsgConnectivityWEU)" -replace '\*env\*', 'a' 
+                              $rsgConnectivityNEU = "$(rsgConnectivityNEU)" -replace '\*env\*', 'a' 
+                              $rsgSHWEU = "$(rsgSHWEU)" -replace '\*env\*', 'a'
+                              $vNetNameVariableWEU = "$(vNetNameVariableWEU)" -replace '\*env\*', 'a'
+                              $vNetNameVariableNEU = "$(vNetNameVariableNEU)" -replace '\*env\*', 'a'
+                              $PeeringWEU = "$(PeeringWEU)" -replace '\*env\*', 'a'
+                              $PeeringNEU = "$(PeeringNEU)" -replace '\*env\*', 't'
+                              $powerPlatformEnvironmentId = "$(powerPlatformEnvironmentIdAcc)"
+                              $SNetPPWEU = "$(SNetPPWEU)" -replace '\*env\*', 'a'
+                              $SNetPPNEU = "$(SNetPPNEU)" -replace '\*env\*', 'a'
+                              $SNetPEWEU = "$(SNetPEWEU)" -replace '\*env\*', 'a'
+                              $SNetSHWEU = "$(SNetSHWEU)" -replace '\*env\*', 'a'
+                              $keyvaultName = "$(keyvaultName)" -replace '\*env\*', 'a'
+                              $NsgPeWEU = "$(NsgPeWEU)" -replace '\*env\*', 'a'
+                              $NsgPpWEU = "$(NsgPpWEU)" -replace '\*env\*', 'a'
+                              $NsgPpNEU = "$(NsgPpNEU)" -replace '\*env\*', 'a'
+                              $NsgShWEU = "$(NsgShWEU)" -replace '\*env\*', 'a'
+                              $addressPrefix = "$(addressPrefixAcc)"
+                              $objectIdEntPolReader = "$(objectIdEntPolReaderAcc)"
+                              $roleAssignmentsKV = "$(roleAssignmentsKV)"
+                              $defaultSecrets = "$(defaultSecrets)"
+                          }
+                    'prd' { 
+                              $subscriptionid = "$(SubscriptionIdPrd)"
+                              $rsgConnectivityWEU = "$(rsgConnectivityWEU)" -replace '\*env\*', 'p' 
+                              $rsgConnectivityNEU = "$(rsgConnectivityNEU)" -replace '\*env\*', 'p' 
+                              $rsgSHWEU = $(rsgSHWEU) -replace '\*env\*', 'p'
+                              $vNetNameVariableWEU = "$(vNetNameVariableWEU)" -replace '\*env\*', 'p'
+                              $vNetNameVariableNEU = "$(vNetNameVariableNEU)" -replace '\*env\*', 'p'
+                              $PeeringWEU = "$(PeeringWEU)" -replace '\*env\*', 'p'
+                              $PeeringNEU = "$(PeeringNEU)" -replace '\*env\*', 'p'
+                              $powerPlatformEnvironmentId = "$(powerPlatformEnvironmentIdPrd)"
+                              $SNetPPWEU = "$(SNetPPWEU)" -replace '\*env\*', 'p'
+                              $SNetPPNEU = "$(SNetPPNEU)" -replace '\*env\*', 'p'
+                              $SNetPEWEU = "$(SNetPEWEU)" -replace '\*env\*', 'p'
+                              $SNetSHWEU = "$(SNetSHWEU)" -replace '\*env\*', 'p'
+                              $keyvaultName = "$(keyvaultName)" -replace '\*env\*', 'p'
+                              $NsgPeWEU = "$(NsgPeWEU)" -replace '\*env\*', 'p'
+                              $NsgPpWEU = "$(NsgPpWEU)" -replace '\*env\*', 'p'
+                              $NsgPpNEU = "$(NsgPpNEU)" -replace '\*env\*', 'p'
+                              $NsgShWEU = "$(NsgShWEU)" -replace '\*env\*', 'p'
+                              $addressPrefix = "$(addressPrefixWEU)"
+                              $objectIdEntPolReader = "$(objectIdEntPolReaderPrd)"
+                              $roleAssignmentsKV = "$(roleAssignmentsKV)"
+                              $defaultSecrets = "$(defaultSecrets)"
+                          }
+                }
+                Write-Output "##vso[task.setvariable variable=SubscriptionId]$subscriptionid"
+                Write-Output "##vso[task.setvariable variable=rsgConnectivityWEU]$rsgConnectivityWEU"
+                Write-Output "##vso[task.setvariable variable=rsgConnectivityNEU]$rsgConnectivityNEU"
+                Write-Output "##vso[task.setvariable variable=rsgSHWEU]$rsgSHWEU"
+                Write-Output "##vso[task.setvariable variable=vNetNameVariableWEU]$vNetNameVariableWEU"
+                Write-Output "##vso[task.setvariable variable=vNetNameVariableNEU]$vNetNameVariableNEU"
+                Write-Output "##vso[task.setvariable variable=PeeringWEU]$PeeringWEU"
+                Write-Output "##vso[task.setvariable variable=PeeringNEU]$PeeringNEU"
+                Write-Output "##vso[task.setvariable variable=powerPlatformEnvironmentId]$powerPlatformEnvironmentId"
+                Write-Output "##vso[task.setvariable variable=SNetPPWEU]$SNetPPWEU"
+                Write-Output "##vso[task.setvariable variable=SNetPPNEU]$SNetPPNEU"
+                Write-Output "##vso[task.setvariable variable=SNetPEWEU]$SNetPEWEU"
+                Write-Output "##vso[task.setvariable variable=SNetSHWEU]$SNetSHWEU"
+                Write-Output "##vso[task.setvariable variable=KeyvaultName]$keyvaultName"
+                Write-Output "##vso[task.setvariable variable=NsgPeWEU]$NsgPeWEU"
+                Write-Output "##vso[task.setvariable variable=NsgPpWEU]$NsgPpWEU"
+                Write-Output "##vso[task.setvariable variable=NsgPpNEU]$NsgPpNEU"
+                Write-Output "##vso[task.setvariable variable=NsgShWEU]$NsgShWEU"
+                Write-Output "##vso[task.setvariable variable=addressPrefix]$addressPrefix"
+                Write-Output "##vso[task.setvariable variable=objectIdEntPolReader]$objectIdEntPolReader"
+                Write-Output "##vso[task.setvariable variable=roleAssignmentsKV]$roleAssignmentsKV"
+                Write-Output "##vso[task.setvariable variable=defaultSecrets]$defaultSecrets"
+                
+          - ${{ if contains(parameters['environment'], 'dev') }}:
+            - template: templates/powerplatform.yml
+              parameters:
+                ServiceConnectionName: $(ServiceConnectionNameDev)
+                environment: ${{ parameters.environment }}
+          - ${{ if contains(parameters['environment'], 'tst') }}:
+            - template: templates/powerplatform.yml
+              parameters:
+                ServiceConnectionName: $(ServiceConnectionNameTst)
+                environment: ${{ parameters.environment }}
+          - ${{ if contains(parameters['environment'], 'acc') }}:
+            - template: templates/powerplatform.yml
+              parameters:
+                ServiceConnectionName: $(ServiceConnectionNameAcc)
+                environment: ${{ parameters.environment }}
+          - ${{ if contains(parameters['environment'], 'prd') }}:
+            - template: templates/powerplatform.yml
+              parameters:
+                ServiceConnectionName: $(ServiceConnectionNamePrd)
+                environment: ${{ parameters.environment }}

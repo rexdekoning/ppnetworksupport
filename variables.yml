@@ -1,0 +1,59 @@
+variables:
+  ServiceConnectionNameDev: "Azure DEV"
+  ServiceConnectionNameTst: ""
+  ServiceConnectionNameAcc: ""
+  ServiceConnectionNamePrd: ""
+  TenantId: [tenantid]                                                     #The id of your azure tenant
+  SubscriptionIdDev: [subscrptionid]                                       #The Id of your Azure Subscription, if not using a specific environment, just leave it empty
+  SubscriptionIdTst : ''
+  SubscriptionIdACC : ''
+  SubscriptionIdPrd : ''
+  rsgConnectivityWEU: rg-pp-poc-*env*-weu-01                               #can be any value but must include *env* to be replaced
+  rsgConnectivityNEU: rg-pp-poc-*env*-neu-01                               #can be any value but must include *env* to be replaced
+  rsgSHWEU          : rg-pp-poc-kv-*env*-weu-01                            #can be any value but must include *env* to be replaced
+  vNetNameVariableWEU: vnet-*env*-weu-01                                   #can be any value but must include *env* to be replaced
+  vNetNameVariableNEU: vnet-*env*-neu-01                                   #can be any value but must include *env* to be replaced
+  powerPlatformEnvironmentIddev: b43c3c45-9cc8-e69b-b0b7-78e966eab546      #if not using a specific environment, just leave it empty
+  powerPlatformEnvironmentIdtst: ''
+  powerPlatformEnvironmentIdacc: ''
+  powerPlatformEnvironmentIdprd: ''
+  locationWeu: westeurope
+  locationNeu: northeurope
+  PeeringWEU: peering-weu-neu-*env*-01                                     #can be any value but must include *env* to be replaced
+  PeeringNEU: peering-neu-weu-*env*-01                                     #can be any value but must include *env* to be replaced
+  SNetPPWEU: snet-pp-*env*-weu-01                                          #can be any value but must include *env* to be replaced
+  SNetPPNEU: snet-pp-*env*-neu-01                                          #can be any value but must include *env* to be replaced
+  SNetPEWEU: snet-pe-*env*-weu-01                                          #can be any value but must include *env* to be replaced
+  SNetSHWEU: snet-sh-*env*-weu-01                                          #can be any value but must include *env* to be replaced
+  subNetSearchStringPP: "*/subnets/snet-pp-*"                              #need to match the subnet name
+  subNetSearchStringPE: "*/subnets/snet-pe-*"                              #need to match the subnet name
+  keyvaultName: kv-pp-ymere-*env*-weu-02                                   #can be any value but must include *env* to be replaced
+  NsgPeWEU: nsg-pe-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  NsgPpWEU: nsg-pp-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  NsgShWEU: nsg-sh-*env*-weu-01                                            #can be any value but must include *env* to be replaced
+  addressPrefixDev: "10.150.20."
+  addressPrefixTst: "10.150.21."
+  addressPrefixAcc: "10.150.22."
+  addressPrefixPrd: "10.150.23."
+  objectIdEntPolReaderDev: "f4ee0add-965c-4e04-9962-260da7ec13b1"          #if not using a specific environment, just leave it empty
+  objectIdEntPolReaderTst: ""
+  objectIdEntPolReaderAcc: ""
+  objectIdEntPolReaderPrd: ""
+  roleAssignmentsKV:
+    - principalId: '[objectid]' # ObjectId of the user, service principal or group
+      roleDefinitionId: 'b86a8fe4-44ce-4948-aee5-eccb2c155cd' # Key Vault Reader
+      principalType: 'User'
+  defaultSecrets:
+    - name: 'mysecret'
+      value: 'Can you read me from PP?'
+
+    # Options for Principle Type:
+    # User
+    # Group
+    # ServicePrincipal
+
+    # Options for roleDefinitionIdOrName:
+    # '00482a5a-887f-4fb3-b363-3b7fe8e74483' // Key Vault Administrator
+    # 'f25e0fa2-a7c8-4377-a976-54943a77a395' // Key Vault Contributor
+    # 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7' // Key Vault Secrets Officer
+    # '4633458b-17de-408a-b874-0445c86b69e6' // Key Vault Secrets User
