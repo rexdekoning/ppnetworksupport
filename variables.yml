@@ -13,7 +13,7 @@ variables:
   rsgSHWEU          : rg-pp-poc-kv-*env*-weu-01                            #can be any value but must include *env* to be replaced
   vNetNameVariableWEU: vnet-*env*-weu-01                                   #can be any value but must include *env* to be replaced
   vNetNameVariableNEU: vnet-*env*-neu-01                                   #can be any value but must include *env* to be replaced
-  powerPlatformEnvironmentIddev: b43c3c45-9cc8-e69b-b0b7-78e966eab546      #if not using a specific environment, just leave it empty
+  powerPlatformEnvironmentIddev: '[powerplatformenvironmentid]'            #The Id of your Power Platform Environment, if not using a specific environment, just leave it empty
   powerPlatformEnvironmentIdtst: ''
   powerPlatformEnvironmentIdacc: ''
   powerPlatformEnvironmentIdprd: ''
@@ -31,17 +31,17 @@ variables:
   NsgPeWEU: nsg-pe-*env*-weu-01                                            #can be any value but must include *env* to be replaced
   NsgPpWEU: nsg-pp-*env*-weu-01                                            #can be any value but must include *env* to be replaced
   NsgShWEU: nsg-sh-*env*-weu-01                                            #can be any value but must include *env* to be replaced
-  addressPrefixDev: "10.150.20."
-  addressPrefixTst: "10.150.21."
-  addressPrefixAcc: "10.150.22."
-  addressPrefixPrd: "10.150.23."
-  objectIdEntPolReaderDev: "f4ee0add-965c-4e04-9962-260da7ec13b1"          #if not using a specific environment, just leave it empty
+  addressPrefixDev: "10.0.0."                                              #must be a /24 ( 255 addresses ) for this Poc. The script will fill the 4th digit. if not using a specific environment, just leave it empty         
+  addressPrefixTst: "10.0.1."
+  addressPrefixAcc: "10.0.2."
+  addressPrefixPrd: "10.0.3."
+  objectIdEntPolReaderDev: "[objectid]"                                    #Object ID of SPN used to run AzDevOps pipeline, if not using a specific environment, just leave it empty
   objectIdEntPolReaderTst: ""
   objectIdEntPolReaderAcc: ""
   objectIdEntPolReaderPrd: ""
   roleAssignmentsKV:
-    - principalId: '[objectid]' # ObjectId of the user, service principal or group
-      roleDefinitionId: 'b86a8fe4-44ce-4948-aee5-eccb2c155cd' # Key Vault Reader
+    - principalId: '[objectid]'                                            # ObjectId of the user, service principal or group
+      roleDefinitionId: 'b86a8fe4-44ce-4948-aee5-eccb2c155cd'              # Key Vault Reader
       principalType: 'User'
   defaultSecrets:
     - name: 'mysecret'

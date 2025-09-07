@@ -125,10 +125,8 @@ steps:
         Write-Host "##vso[task.setvariable variable=ENTPOLICYID]$entPolicy"
 
         #Grant Reader role to the enterprise policy to the identity / group that will finalize the configuration - link the enterprise policy to the Power Platform environments
-        # #For now grant thijs rights
-        # az role assignment create --assignee 94c70ddf-36ab-4bd1-919d-a3ac5aee772c --role Reader --scope $entPolicy
 
-        #SPN From Ymere
+        #SPN or User or Group that will finalize the configuration - link the enterprise policy to the Power Platform environments
         az role assignment create --assignee $(objectIdEntPolReader) --role Reader --scope $entPolicy
 
   - task: AzureCLI@2
@@ -140,6 +138,7 @@ steps:
       inlineScript: |
         az network vnet peering create -g $(rsgConnectivityWEU) -n $(PeeringWEU) --vnet-name $(vNetNameVariableWEU) --remote-vnet $(vnetNeuId) --allow-vnet-access
         az network vnet peering create -g $(rsgConnectivityNEU) -n $(PeeringNEU) --vnet-name $(vNetNameVariableNEU) --remote-vnet $(vnetWeuId) --allow-vnet-access
+
   - task: AzureCLI@2
     displayName: "Keyvault"
     inputs:
@@ -147,13 +146,14 @@ steps:
       scriptType: pscore
       scriptLocation: inlineScript
       inlineScript: |
-        $KeyVaultWEUId = az deployment group create --name KV --parameters ./parameters/${{ parameters.environment }}/kvWEU.bicepparam `
+        $KeyVaultWEUId = az deployment group create --name KV --parameters ./parameters/common/kvWEU.bicepparam `
                                                 --parameters name=$(KeyvaultName) `
                                                 --resource-group $(rsgSHWEU) | `
                                                 ConvertFrom-Json | Select-Object -ExpandProperty properties | `
                                                 Select-Object -ExpandProperty outputResources | `
                                                 Select-Object -ExpandProperty id -First 1
         Write-Host "##vso[task.setvariable variable=KVWEUID]$KeyVaultWEUId"
+
   - task: AzureCLI@2
     displayName: "Private DNS Zones"
     inputs:
@@ -167,6 +167,7 @@ steps:
                                                     Select-Object -ExpandProperty outputResources | `
                                                     Select-Object -ExpandProperty id -First 1
         Write-Host "##vso[task.setvariable variable=KVZONEID]$keyVaultZone"
+
   - task: AzureCLI@2
     displayName: "Private End Points"
     inputs:
@@ -175,6 +176,7 @@ steps:
       scriptLocation: inlineScript
       inlineScript: |
         az deployment group create --name pekeyvault --parameters ./parameters/common/peKeyvaultWEU.bicepparam --resource-group $(rsgSHWEU) --parameters subnetResourceId=$(PESNETWEUID) --parameters name=--parameters name=pe-$(KeyvaultName)
+
   - task: AzureCLI@2
     displayName: "Power Platorm"
     inputs:
@@ -188,10 +190,7 @@ steps:
           "SystemId" = az resource show --ids $(ENTPOLICYID) --query "properties.systemId" -o tsv
         }
 
-        Write-Host $body
-
         $linkEnterprisePolicyUri = "https://api.bap.microsoft.com/providers/Microsoft.BusinessAppPlatform/environments/$(powerPlatformEnvironmentId)/enterprisePolicies/NetworkInjection/link?&api-version=2019-10-01"
-        Write-Host $linkEnterprisePolicyUri
         $linkEnterprisePolicyResult = Invoke-WebRequest -Uri $linkEnterprisePolicyUri -Authentication OAuth -Token $(ConvertTo-SecureString $powerPlatformAdminApiToken -AsPlainText -Force) -Method Post -ContentType "application/json" -Body ($body | ConvertTo-Json) -UseBasicParsing
         if ($linkEnterprisePolicyResult.StatusCode -eq 200) {
           Write-Host "Enterprise policy linked to Power Platform environment successfully."
